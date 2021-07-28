@@ -93,7 +93,7 @@ function SwitcherTracking:OnInitialize()
 
     LibStub('AceConfig-3.0'):RegisterOptionsTable('SwitcherTracking', options)
     self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('SwitcherTracking', 'SwitcherTracking')
-    self:RegisterChatCommand('st', 'ChatCommand')
+    self:RegisterChatCommand('swt', 'ChatCommand')
     self:RegisterChatCommand('SwitcherTracking', 'ChatCommand')
 
     -- Set default values
