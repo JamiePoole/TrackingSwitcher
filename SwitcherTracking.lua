@@ -87,13 +87,13 @@ local defaults = {
 }
 
 function SwitcherTracking:OnInitialize()
-    print('Thank you for using SwitcherTracking, write /ts to enable. To change tracking types use /ts opt')
+    print('To Start witcherTracking, use /st to enable. To change tracking types use /st opt')
 
     self.db = LibStub("AceDB-3.0"):New("SwitcherTrackingCharDB", defaults, true)
 
     LibStub('AceConfig-3.0'):RegisterOptionsTable('SwitcherTracking', options)
     self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('SwitcherTracking', 'SwitcherTracking')
-    self:RegisterChatCommand('ts', 'ChatCommand')
+    self:RegisterChatCommand('st', 'ChatCommand')
     self:RegisterChatCommand('SwitcherTracking', 'ChatCommand')
 
     -- Set default values
@@ -110,7 +110,7 @@ function SwitcherTracking:ChatCommand(input)
         if(input:trim() == 'opt') then
             InterfaceOptionsFrame_OpenToCategory(self.optionsFrame);
         else
-            print('Did you mean "/ts opt"? To start simply type "/ts"');
+            print('For change Options "/st opt"? To start or stop simply use "/st"');
         end
     end
 end
@@ -120,13 +120,13 @@ function SwitcherTracking:ToggleTracking(input)
 end
 
 function SwitcherTracking:StartTimer()
-    print('Starting SwitcherTracking, to stop type /ts again');
+    print('Starting SwitcherTracking, to stop type /st again');
 
     self.trackingTimer = self:ScheduleRepeatingTimer('TimerFeedback', SwitcherTracking:GetCastInterval())
 end
 
 function SwitcherTracking:StopTimer()
-    print('Stopping SwitcherTracking, to start type /ts again');
+    print('Stopping SwitcherTracking, to start type /st again');
 
     self:CancelTimer(self.trackingTimer);
 end
