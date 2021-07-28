@@ -87,7 +87,7 @@ local defaults = {
 }
 
 function SwitcherTracking:OnInitialize()
-    print('To Start witcherTracking, use /st to enable. To change tracking types use /st opt')
+    print('To Start witcherTracking, use /swt to enable. To change tracking types use /swt opt')
 
     self.db = LibStub("AceDB-3.0"):New("SwitcherTrackingCharDB", defaults, true)
 
@@ -110,7 +110,7 @@ function SwitcherTracking:ChatCommand(input)
         if(input:trim() == 'opt') then
             InterfaceOptionsFrame_OpenToCategory(self.optionsFrame);
         else
-            print('For change Options "/st opt"? To start or stop simply use "/st"');
+            print('For change Options "/swt opt"? To start or stop simply use "/swt"');
         end
     end
 end
@@ -120,13 +120,13 @@ function SwitcherTracking:ToggleTracking(input)
 end
 
 function SwitcherTracking:StartTimer()
-    print('Starting SwitcherTracking, to stop type /st again');
+    print('Starting SwitcherTracking, to stop type /swt again');
 
     self.trackingTimer = self:ScheduleRepeatingTimer('TimerFeedback', SwitcherTracking:GetCastInterval())
 end
 
 function SwitcherTracking:StopTimer()
-    print('Stopping SwitcherTracking, to start type /st again');
+    print('Stopping SwitcherTracking, to start type /swt again');
 
     self:CancelTimer(self.trackingTimer);
 end
