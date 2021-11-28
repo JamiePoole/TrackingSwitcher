@@ -43,12 +43,32 @@ if raceEn == 'Dwarf' then
     classTrackingValues['treasure'] = 'Find Treasure'
 end
 
+
+
 local options = {
-    name = 'SwitcherTracking',
-    handler = SwitcherTracking,
+     
+	name = 'SwitcherTracking',
+	
+	handler = SwitcherTracking,
     type = 'group',
-    args = {
-        type1 = {
+    desc ='SwitcherTracking detail',
+	
+	args = {
+		heading = {
+		type = "description",
+		name = 'To Start SwitcherTracking, use "/swt" to enable or disable.',
+		fontSize = "large",
+		order = 1,
+		width = "full",	
+		},
+		heading2 = {
+		type = "description",
+		name = 'To change tracking types use "/swt opt"',
+		fontSize = "large",
+		order = 2,
+		width = "full",	
+		},
+		type1 = {
             name = "First Type",
             desc = "First type to swap between",
             type = "select",
@@ -73,10 +93,11 @@ local options = {
             step = 1,
             get = 'GetCastInterval',
             set = 'SetCastInterval',
-            width = "full"
+            width = "full",
         }
     }
 }
+
 
 
 local defaults = {
@@ -92,7 +113,7 @@ function SwitcherTracking:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("SwitcherTrackingCharDB", defaults, true)
 
     LibStub('AceConfig-3.0'):RegisterOptionsTable('SwitcherTracking', options)
-    self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('SwitcherTracking', 'SwitcherTracking')
+    self.optionsFrame = LibStub('AceConfigDialog-3.0'):AddToBlizOptions('SwitcherTracking', 'SwitcherTracking : start or stop simply use /swt')
     self:RegisterChatCommand('swt', 'ChatCommand')
     self:RegisterChatCommand('SwitcherTracking', 'ChatCommand')
 
