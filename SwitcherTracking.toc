@@ -1,4 +1,4 @@
-## Interface: 20501
+## Interface: 20503
 
 ## Title: Switcher Tracking TBC multilanguage
 ## Version: 1.0.0
