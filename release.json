@@ -1,0 +1,14 @@
+{
+    "releases": [
+        {
+            "filename": "0.1.3.zip",
+            "nolib": false,
+            "metadata": [
+                {
+                    "flavor": "mainline",
+                    "interface": 20504
+                }
+            ]
+        }
+    ]
+}
