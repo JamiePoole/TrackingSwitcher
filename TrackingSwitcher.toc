@@ -1,0 +1,10 @@
+## Interface: 30400
+
+## Title: Tracking Switcher
+## Version: 1.0.0
+## Author: 5thElement
+## Notes: Automatically switch tracking types for identifying multiple resources
+## SavedVariables: TrackingSwitcherGlobal
+## SavedVariablesPerCharacter: TrackingSwitcherCharacter
+
+TrackingSwitcher.lua
