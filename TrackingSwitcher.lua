@@ -6,6 +6,7 @@ local addonName = "Tracking Switcher"
 local addonColor = "#FF71D5"
 local defaultOptions = {
     Updated = false,
+    Autostart = true,
     Mute = true,
     Interval = 2,
     EnabledAbilities = {},
@@ -152,6 +153,9 @@ local function SwitchAbility()
         -- Unmute the sound effect
         if (TrackingSwitcherCharacter.Options.Mute) then UnmuteSoundFile(567407) end
 
+        -- If there is only one Tracker while running (perhaps a Tracker was unlearned), cancel the timer
+        if (#TrackingSwitcherCharacter.Options.EnabledAbilities < 2) then TrackingSwitcherCharacter.Ticker:Cancel() end
+
         -- Progress this Index, loop back to 1 at end
         if (TrackingSwitcherCharacter.Index == #TrackingSwitcherCharacter.Options.EnabledAbilities) then
             TrackingSwitcherCharacter.Index = 1
@@ -217,7 +221,7 @@ local function StartTicker()
     if (not TickerExists()) then
         printFromAddon("is starting, type /ts again to cancel.")
 
-        TrackingSwitcherCharacter.Ticker = C_Timer.NewTicker(TrackingSwitcherCharacter.Interval, OnTicker)
+        TrackingSwitcherCharacter.Ticker = C_Timer.NewTicker(TrackingSwitcherCharacter.Options.Interval, OnTicker)
     end
 end
 
