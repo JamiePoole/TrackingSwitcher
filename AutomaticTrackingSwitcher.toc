@@ -1,0 +1,11 @@
+## Interface: 30400
+
+## Title: Automatic Tracking Switcher
+## Version: 1.0.0
+## Author: Kawalsky
+## Notes: Automatically switch tracking types for identifying multiple resources
+## SavedVariables: ATS_Global
+## SavedVariablesPerCharacter: ATS_Character
+
+AutomaticTrackingSwitcher.lua
+InterfaceOptions.lua
