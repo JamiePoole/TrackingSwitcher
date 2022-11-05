@@ -29,6 +29,7 @@ ATS.frames = {}
 -------------------------------------------------------------------------------
 
 local IS_LOOTING = false
+local IS_AUTOREPEATING = false
 local CURSOR_ON_MINIMAP = false
 local HAS_PLAYED_PAUSE_SOUND = false
 
@@ -161,17 +162,21 @@ function ATS.CanSwitchTo(ability)
     local currentCastingSpell = UnitCastingInfo("player")
     if (currentCastingSpell ~= nil) then ATS.Debug("Currently casting spell: " .. currentCastingSpell) end
 
-    -- Can only switch if the user is not looting
-    local looting = IS_LOOTING
-    if (looting) then ATS.Debug("Loot window currently open") end
-
+    -- Can only switch if the user is not channeling a spell or item
+    local channelling = UnitChannelInfo("player")
+    if (channelling ~= nil) then ATS.Debug("Currently channelling an ability: " .. channelling) end
+    
     -- Can only switch if the user doesn't have something on their cursor (left-click drag of loot or spell etc)
     local cursorType, cursorInfo1, cursorInfo2 = GetCursorInfo()
     if (cursorType ~= nil) then ATS.Debug("Cursor is currently active with: " .. cursorType) end
 
-    -- Can only switch if the user is not channeling a spell or item
-    local channelling = UnitChannelInfo("player")
-    if (channelling ~= nil) then ATS.Debug("Currently channelling an ability: " .. channelling) end
+    -- Can only switch if the user is not looting
+    local looting = IS_LOOTING
+    if (looting) then ATS.Debug("Loot window currently open") end
+
+    -- Can only switch if the user is not in an auto-repeat cast (Wand Shoot etc)
+    local autorepeating = IS_AUTOREPEATING
+    if (autorepeating) then ATS.Debug("Currently auto-repeating a cast") end
 
     -- Can only switch if the user isn't in targeting mode (free-aim like Blizzard or some throwable items usually bombs)
     local targeting = SpellIsTargeting()
@@ -181,7 +186,7 @@ function ATS.CanSwitchTo(ability)
     local hovering = ATS_Character.options.minimapPause and CURSOR_ON_MINIMAP
     if (hovering) then ATS.Debug("Cursor is over minimap") end
 
-    return (cooldownRemaining == 0) and (currentCastingSpell == nil) and (channelling == nil) and (cursorType == nil) and (not looting) and (not targeting) and (not hovering)
+    return (cooldownRemaining == 0) and (currentCastingSpell == nil) and (channelling == nil) and (cursorType == nil) and (not looting) and (not autorepeating) and (not targeting) and (not hovering)
 end
 
 function ATS.GetValidatedTrackingId(ability)
@@ -313,11 +318,18 @@ function ATS.OnLootEvent(event, ...)
     IS_LOOTING = (event == "LOOT_OPENED")
 end
 
+-- Event START_AUTOREPEAT_SPELL or STOP_AUTOREPEAT_SPELL
+function ATS.OnAutoRepeatEvent(event, ...)
+    -- Toggle flag while firing auto-repeat spell
+    IS_AUTOREPEATING = (event == "START_AUTOREPEAT_SPELL")
+end
+
 -- Frame ONEVENT
 function ATS.OnEvent(self, event, ...)
     if (event == "ADDON_LOADED") then ATS.OnAddonLoaded(event, ...) end
     if (event == "PLAYER_LOGIN") then ATS.OnPlayerLogin(event, ...) end
     if (event == "LOOT_OPENED" or event == "LOOT_CLOSED") then ATS.OnLootEvent(event, ...) end
+    if (event == "START_AUTOREPEAT_SPELL" or event == "STOP_AUTOREPEAT_SPELL") then ATS.OnAutoRepeatEvent(event, ...) end
 end
 
 -- C_Timer.NewTicker ONTICKER (intervsal)
@@ -414,4 +426,6 @@ ATS.frames.events:RegisterEvent("ADDON_LOADED")
 ATS.frames.events:RegisterEvent("PLAYER_LOGIN")
 ATS.frames.events:RegisterEvent("LOOT_OPENED")
 ATS.frames.events:RegisterEvent("LOOT_CLOSED")
+ATS.frames.events:RegisterEvent("START_AUTOREPEAT_SPELL")
+ATS.frames.events:RegisterEvent("STOP_AUTOREPEAT_SPELL")
 ATS.frames.events:SetScript("OnEvent", ATS.OnEvent)
