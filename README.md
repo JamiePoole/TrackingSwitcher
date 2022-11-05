@@ -39,13 +39,14 @@ There are still a some features yet to be implemented that are currently in-deve
 | Feature | Progress |
 |---------|:--------:|
 | Bug Fixes | In-Progress|
-| List commands and arguments for slash command (/ats) | Planned |
+| Dungeon/Raid/Combat toggle | In-Progress |
 | Localisation | Planned |
 | Provide functional key-bindings for switching | Planned |
 | React to user learning/unlearning Tracking abilities | Planned |
-| Minimap Tracking Icon overlay/GUI | Planned |
 | Stop Switch on manual Tracker override | Planned |
 | Resume 'pause' based on time elapsed | Planned |
+| Minimap Tracking Icon overlay/GUI | Wish |
 | Allow players to select Trackers from default GUI dropdown | Wish |
+| List commands and arguments for slash command (/ats) | Complete |
 
 To make requests, report a bug, or just leave feedback, see this project's GitHub page at https://github.com/JamiePoole/TrackingSwitcher

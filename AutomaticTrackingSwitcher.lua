@@ -385,32 +385,41 @@ end
 -------------------------------------------------------------------------------
 -- Slash Commands
 -------------------------------------------------------------------------------
+ATS.commandList = {
+    options = {
+        description = "Show the Interface Options panel",
+        callback = function(parameter) InterfaceOptionsFrame_OpenToCategory(ATS.frames.options.panel) end
+    },
+    debug = {
+        description = "Set to 0 (off) or 1 (on) to display debug messages in the chat window",
+        callback = function(parameter) 
+            ATS_Character.options.debugMode = (parameter == "1" or parameter == 1)
+            ATS.Print("Debug mode " .. (ATS_Character.options.debugMode and "on" or "off") .. ".")
+        end
+    },
+    start = {
+        description = "Start switching trackers if 2 or more are available",
+        callback = function(parameter) ATS.StartTicker() end
+    },
+    stop = {
+        description = "Stop switching trackers",
+        callback = function(parameter) ATS.StopTicker() end
+    }
+}
 
 function ATS.OnCommand(text)
     local arguments = ATS.Split(text, "%s")
     local command = arguments[1]
     local parameter = arguments[2]
 
-    -- Config will open the Addon Interface Options window
-    if (command == "options") then
-        -- The options frame is defined in the 'InterfaceOptions.lua' file
-        InterfaceOptionsFrame_OpenToCategory(ATS.frames.options.panel)
-
-    -- Debug will show or hide debug messages in the chat window
-    elseif (command == "debug") then
-        ATS_Character.options.debugMode = (parameter == "1" or parameter == 1)
-
-    -- Manually start the Ticker
-    elseif (command == "start") then
-        ATS.StartTicker()
-
-    -- Manually stop the Ticker
-    elseif (command == "stop") then
-        ATS.StopTicker()
-
-    -- Else, print command list
+    if (ATS.commandList[command] ~= nil) then
+        ATS.commandList[command].callback(parameter)
     else
-        -- TODO: print command list
+        ATS.Print("Slash Commands:")
+
+        for key, value in pairs(ATS.commandList) do
+            ATS.Print(ATS.ColoredTextFromHex("#FFCC00", key) .. ": " .. value.description)
+        end
     end
 end
 
