@@ -124,33 +124,34 @@ function ATS.UpdateAbilities()
     ATS.Print("Found " .. tostring(#ATS_Character.abilities) .. " tracking " .. format("\1244ability:abilities", #ATS_Character.abilities) .. ".")
 end
 
-function ATS.EnableDefaultAbilities()
+function ATS.GetDefaultAbilities(force)
     -- Exit early if there are no available Abilities
-    if (#ATS_Character.abilities == 0) then return end
+    if (#ATS_Character.abilities == 0) then return ATS.defaultOptions.enabledAbilities end
     -- Exit early if there are already abilities enabled (not default)
-    if (#ATS_Character.options.enabledAbilities > 0) then return end
+    -- The force flag can skip this check
+    if (not force and #ATS_Character.options.enabledAbilities > 0) then return ATS_Character.options.enabledAbilities end
 
-    -- Reset Enabled Abilities for potential order of operations conflicts
-    ATS_Character.options.enabledAbilities = {}
+    -- Create a local returned Enabled Abilities table
+    local enabledAbilities = {}
 
     -- Loop through available Abilties, search for Mining or Herbalism
     -- Mining and Herbalism are enabled by default if available
     for index, ability in ipairs(ATS_Character.abilities) do
-        ATS.Debug(index .. ": " .. ability.name)
-
         if (ability.name == "Find Minerals") then
-            table.insert(ATS_Character.options.enabledAbilities, ability)
+            table.insert(enabledAbilities, ability)
         end
 
         if (ability.name == "Find Herbs") then
-            table.insert(ATS_Character.options.enabledAbilities, ability)
+            table.insert(enabledAbilities, ability)
         end
     end
 
     -- Debug output of the enabled abilities
-    for index, ability in ipairs(ATS_Character.options.enabledAbilities) do
-        ATS.Debug("Enabled [" .. ability.id .. "] '" .. ability.name .. "'")
+    for index, ability in ipairs(enabledAbilities) do
+        ATS.Debug("Default Found [" .. ability.id .. "] '" .. ability.name .. "'")
     end
+
+    return enabledAbilities
 end
 
 function ATS.CanSwitchTo(ability)
@@ -302,10 +303,18 @@ function ATS.OnPlayerLogin(event, ...)
     -- Collects and stores possible tracking Abilities into table
     ATS.UpdateAbilities()
 
-    -- Try enable Mining or Herbalism as default
-    ATS.EnableDefaultAbilities()
+    -- Actions for first run
+    if (not ATS_Character.runOnce) then
+        ATS.Debug("FIRST RUN")
+
+        -- Try enable Mining or Herbalism as default
+        ATS_Character.options.enabledAbilities = ATS.GetDefaultAbilities()
+
+        ATS_Character.runOnce = true
+    end
 
     -- Create Interface Options Widget UI
+    -- This is called after first run actions in case any options are set during that step
     ATS.CreateInterfaceOptions()
 
     -- If the `autostart` option is set, start the ticker
