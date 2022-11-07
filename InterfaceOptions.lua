@@ -185,7 +185,6 @@ function ATS.CreateInterfaceOptions()
         ATS.frames.options.noAbilityMessage:SetText("There are no tracking abilities to enable.")
     end
 
-
     -- This is the built-in `refresh` callback included when assigning a panel to the Interface Options window
     -- Refresh occurs when user switches between Interface Options pages or re-opens window
     ATS.frames.options.panel.refresh = function()
@@ -197,6 +196,24 @@ function ATS.CreateInterfaceOptions()
         ATS.frames.options.checkboxResumeSound:SetChecked(ATS.frames.options.temporaryValues.resumeSound)
         ATS.frames.options.checkboxResumeSound:SetEnabled(ATS.frames.options.checkboxPauseSound:GetChecked())
         ATS.frames.options.checkboxMinimapPause:SetChecked(ATS.frames.options.temporaryValues.minimapPause)
+
+        -- Loop through the CheckButton elements
+        for i, checkboxAbility in ipairs(ATS.frames.options.checkboxAbilities) do
+            local ability = checkboxAbility.Ability
+
+            -- Make sure there is an ability added to this CheckButton element
+            if (ability) then
+                -- Loop through the actual enabled abilities 
+                checkboxAbility:SetChecked(false)
+
+                for j, enabledAbility in ipairs(ATS.frames.options.temporaryValues.enabledAbilities) do
+                    -- If the enabled ability matches that attached to this CheckButton element, mark it checked
+                    if (enabledAbility.name == ability.name) then
+                        checkboxAbility:SetChecked(true)
+                    end
+                end
+            end
+        end
     end
 
     -- This built-in callback runs when the user clicks the `Okay` button on the Interface Options window
@@ -238,6 +255,9 @@ function ATS.CreateInterfaceOptions()
     ATS.frames.options.panel.default = function()
         -- Copy the original defaults table to the temporary values table
         ATS.frames.options.temporaryValues = CopyTable(ATS.defaultOptions)
+
+        -- Enable default Tracking abilities
+        ATS.frames.options.temporaryValues.enabledAbilities = ATS.GetDefaultAbilities(true)
     end
 
     -- This built-in callback runs when the the Interface Options window is cancelled, either through the Cancel button or Escape key
@@ -250,7 +270,7 @@ end
 function ATS.IsAbilityOptionChecked(optionAbility)
     if (not optionAbility or not optionAbility.name) then return false end
 
-    for i, enabledAbility in ipairs(ATS_Character.options.enabledAbilities) do
+    for i, enabledAbility in ipairs(ATS.frames.options.temporaryValues.enabledAbilities) do
         -- Check names, if this passed option ability is in the enabled abilities table, return true
         if (enabledAbility.name == optionAbility.name) then return true end
     end
