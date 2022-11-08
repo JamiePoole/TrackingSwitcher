@@ -24,7 +24,7 @@ function ATS.CreateInterfaceOptions()
 
     -- Custom properties to store the default padding and margin for options
     ATS.frames.options.padding = 16
-    ATS.frames.options.margin = 32
+    ATS.frames.options.margin = 10
 
     -- Create a Scrolling frame container
     ATS.frames.options.scrollFrame = CreateFrame("ScrollFrame", nil, ATS.frames.options.panel, "UIPanelScrollFrameTemplate")
@@ -46,32 +46,30 @@ function ATS.CreateInterfaceOptions()
     -- Align the label/text to the left.
     -- On change, update the text box (editboxInterval)
     ATS.frames.options.sliderInterval = CreateFrame("Slider", "ATS_Options_Interval", ATS.frames.options.content, "OptionsSliderTemplate")
-    ATS.frames.options.sliderInterval.Text = _G[ATS.frames.options.sliderInterval:GetName() .. "Text"]
-    ATS.frames.options.sliderInterval.Low = _G[ATS.frames.options.sliderInterval:GetName() .. "Low"]
-    ATS.frames.options.sliderInterval.High = _G[ATS.frames.options.sliderInterval:GetName() .. "High"]
     ATS.frames.options.sliderInterval.Min = 2
     ATS.frames.options.sliderInterval.Max = 15
     ATS.frames.options.sliderInterval.Step = 0.5
-    ATS.frames.options.sliderInterval:SetPoint("TOPLEFT", ATS.frames.options.title, 6, (-ATS.frames.options.margin*1.5))
+    ATS.frames.options.sliderInterval.Label = _G[ATS.frames.options.sliderInterval:GetName() .. "Text"]
+    ATS.frames.options.sliderInterval.Label:SetPoint("LEFT", ATS.frames.options.sliderInterval, 0, 0)
+    ATS.frames.options.sliderInterval.Label:SetJustifyH("LEFT")
+    ATS.frames.options.sliderInterval.Label:SetText("Switch Interval (in seconds)")
+    ATS.frames.options.sliderInterval.Low = _G[ATS.frames.options.sliderInterval:GetName() .. "Low"]
+    ATS.frames.options.sliderInterval.Low:SetText(ATS.frames.options.sliderInterval.Min)
+    ATS.frames.options.sliderInterval.High = _G[ATS.frames.options.sliderInterval:GetName() .. "High"]
+    ATS.frames.options.sliderInterval.High:SetText(ATS.frames.options.sliderInterval.Max)
+    ATS.frames.options.sliderInterval:SetPoint("TOPLEFT", ATS.frames.options.title, "BOTTOMLEFT", 6, -((ATS.frames.options.margin * 2) + ATS.frames.options.sliderInterval.Label:GetHeight()))
     ATS.frames.options.sliderInterval:SetWidth(ATS.frames.options.content:GetWidth() - ATS.frames.options.padding - 84)
     ATS.frames.options.sliderInterval:SetMinMaxValues(ATS.frames.options.sliderInterval.Min, ATS.frames.options.sliderInterval.Max)
     ATS.frames.options.sliderInterval:SetValue(tonumber(string.format("%.2f", ATS.frames.options.temporaryValues.interval)))
     ATS.frames.options.sliderInterval:SetValueStep(ATS.frames.options.sliderInterval.Step)
     ATS.frames.options.sliderInterval:SetObeyStepOnDrag(true)
-    ATS.frames.options.sliderInterval.Text:SetPoint("LEFT", ATS.frames.options.sliderInterval, 0, 0)
-    ATS.frames.options.sliderInterval.Text:SetJustifyH("LEFT")
-    ATS.frames.options.sliderInterval.Text:SetText("Switch Interval (in seconds)")
-    ATS.frames.options.sliderInterval.Low:SetText(ATS.frames.options.sliderInterval.Min)
-    ATS.frames.options.sliderInterval.High:SetText(ATS.frames.options.sliderInterval.Max)
     ATS.frames.options.sliderInterval:SetScript("OnValueChanged", function(self, value) ATS.frames.options.editboxInterval:SetText(tonumber(string.format("%.2f", value))) end)
 
     -- Create the Interval value text box.
     -- Reflects the value of the slider.
     -- Must set `AutoFocus` to `false` or it takes over control from chat window.
-    -- TODO: Cannot type in decimals to truly enter in a manual value.
-    -- TODO: Cannot type in a number that starts in 1 (10, 11, 12 etc)
     ATS.frames.options.editboxInterval = CreateFrame("EditBox", "ATS_Options_Interval_Edit", ATS.frames.options.sliderInterval, "InputBoxTemplate")
-    ATS.frames.options.editboxInterval:SetPoint("TOPRIGHT", ATS.frames.options.sliderInterval, 60, 0)
+    ATS.frames.options.editboxInterval:SetPoint("TOPLEFT", ATS.frames.options.sliderInterval, "TOPRIGHT", 18, 0)
     ATS.frames.options.editboxInterval:SetWidth(42)
     ATS.frames.options.editboxInterval:SetHeight(20)
     ATS.frames.options.editboxInterval:SetAutoFocus(false)
@@ -112,19 +110,19 @@ function ATS.CreateInterfaceOptions()
     -- Create the CheckButton for the `Autostart` option
     ATS.frames.options.checkboxAutostart = CreateFrame("CheckButton", "ATS_Options_Autostart", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
     ATS.frames.options.checkboxAutostart.Text:SetText("Start switching on login")
-    ATS.frames.options.checkboxAutostart:SetPoint("TOPLEFT", ATS.frames.options.sliderInterval, -12, -(ATS.frames.options.margin * 1.5))
+    ATS.frames.options.checkboxAutostart:SetPoint("TOPLEFT", ATS.frames.options.sliderInterval, "BOTTOMLEFT", 0, -(ATS.frames.options.margin * 2))
     ATS.frames.options.checkboxAutostart:SetChecked(ATS.frames.options.temporaryValues.autoStart)
 
     -- Create the CheckButton for the `Mute Sound Effect` option
     ATS.frames.options.checkboxMute = CreateFrame("CheckButton", "ATS_Options_Mute", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
     ATS.frames.options.checkboxMute.Text:SetText("Mute default switching sound")
-    ATS.frames.options.checkboxMute:SetPoint("TOPLEFT", ATS.frames.options.checkboxAutostart, 0, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxMute:SetPoint("TOPLEFT", ATS.frames.options.checkboxAutostart, "BOTTOMLEFT", 0, -ATS.frames.options.margin)
     ATS.frames.options.checkboxMute:SetChecked(ATS.frames.options.temporaryValues.mute)
 
     -- Create the CheckButton for the `Play Sound on Pause` option
     ATS.frames.options.checkboxPauseSound = CreateFrame("CheckButton", "ATS_Options_PauseSound", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
     ATS.frames.options.checkboxPauseSound.Text:SetText("Play sound when switching is paused")
-    ATS.frames.options.checkboxPauseSound:SetPoint("TOPLEFT", ATS.frames.options.checkboxMute, 0, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxPauseSound:SetPoint("TOPLEFT", ATS.frames.options.checkboxMute, "BOTTOMLEFT", 0, -ATS.frames.options.margin)
     ATS.frames.options.checkboxPauseSound:SetChecked(ATS.frames.options.temporaryValues.pauseSound)
     ATS.frames.options.checkboxPauseSound:HookScript("OnClick", function(self) ATS.frames.options.checkboxResumeSound:SetEnabled(self:GetChecked()) end)
 
@@ -133,19 +131,52 @@ function ATS.CreateInterfaceOptions()
     ATS.frames.options.checkboxResumeSound.Text:SetText("Play sound once switching resumes")
     ATS.frames.options.checkboxResumeSound:HookScript("OnDisable", function(self) self:SetAlpha(0.25) end)
     ATS.frames.options.checkboxResumeSound:HookScript("OnEnable", function(self) self:SetAlpha(1.0) end)
-    ATS.frames.options.checkboxResumeSound:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseSound, ATS.frames.options.margin, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxResumeSound:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseSound, "BOTTOMLEFT", 28, -ATS.frames.options.margin)
     ATS.frames.options.checkboxResumeSound:SetChecked(ATS.frames.options.temporaryValues.resumeSound)
     ATS.frames.options.checkboxResumeSound:SetEnabled(ATS.frames.options.checkboxPauseSound:GetChecked())
 
     -- Create the CheckButton for the `Pause while cursor on minimap` option
     ATS.frames.options.checkboxMinimapPause = CreateFrame("CheckButton", "ATS_Options_MinimapPause", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
-    ATS.frames.options.checkboxMinimapPause.Text:SetText("Pause switching when cursor is over the minimap")
-    ATS.frames.options.checkboxMinimapPause:SetPoint("TOPLEFT", ATS.frames.options.checkboxResumeSound, -ATS.frames.options.margin, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxMinimapPause.Text:SetText("Pause switching while cursor is over the minimap")
+    ATS.frames.options.checkboxMinimapPause:SetPoint("TOPLEFT", ATS.frames.options.checkboxResumeSound, "BOTTOMLEFT", -28, -ATS.frames.options.margin)
     ATS.frames.options.checkboxMinimapPause:SetChecked(ATS.frames.options.temporaryValues.minimapPause)
+
+    -- Create the CheckButton for the `Pause in combat` option
+    ATS.frames.options.checkboxPauseInCombat = CreateFrame("CheckButton", "ATS_Options_PauseInCombat", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
+    ATS.frames.options.checkboxPauseInCombat.Text:SetText("Pause switching while in combat")
+    ATS.frames.options.checkboxPauseInCombat:SetPoint("TOPLEFT", ATS.frames.options.checkboxMinimapPause, "BOTTOMLEFT", 0, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxPauseInCombat:SetChecked(ATS.frames.options.temporaryValues.pauseInCombat)
+    ATS.frames.options.checkboxPauseInCombat.Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
+    ATS.frames.options.checkboxPauseInCombat.Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxPauseInCombat, "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
+    ATS.frames.options.checkboxPauseInCombat.Note:SetText(ATS.ColoredTextFromHex('#CB7C7C', "Not recommended unless an enabled tracker uses the global cooldown"))
+
+    -- Create the CheckButton for the `Pause in dungeons` option
+    ATS.frames.options.checkboxPauseInDungeons = CreateFrame("CheckButton", "ATS_Options_PauseInDungeons", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
+    ATS.frames.options.checkboxPauseInDungeons.Text:SetText("Pause switching while in a group dungeon")
+    ATS.frames.options.checkboxPauseInDungeons:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseInCombat.Note, "BOTTOMLEFT", -28, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxPauseInDungeons:SetChecked(ATS.frames.options.temporaryValues.pauseInDungeons)
+
+    -- Create the CheckButton for the `Pause in raids` option
+    ATS.frames.options.checkboxPauseInRaids = CreateFrame("CheckButton", "ATS_Options_PauseInRaids", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
+    ATS.frames.options.checkboxPauseInRaids.Text:SetText("Pause switching while in a raid instance")
+    ATS.frames.options.checkboxPauseInRaids:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseInDungeons, "BOTTOMLEFT", 0, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxPauseInRaids:SetChecked(ATS.frames.options.temporaryValues.pauseInRaids)
+    ATS.frames.options.checkboxPauseInRaids.Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
+    ATS.frames.options.checkboxPauseInRaids.Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxPauseInRaids, "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
+    ATS.frames.options.checkboxPauseInRaids.Note:SetText(ATS.ColoredTextFromHex('#7CB7CB', "Recommended to avoid tracking abilities appearing in raid logs"))
+
+    -- Create the CheckButton for the `Pause in PvP` option
+    ATS.frames.options.checkboxPauseInPvP = CreateFrame("CheckButton", "ATS_Options_PauseInPvP", ATS.frames.options.content, "InterfaceOptionsCheckButtonTemplate")
+    ATS.frames.options.checkboxPauseInPvP.Text:SetText("Pause switching while in a Battleground or Arena")
+    ATS.frames.options.checkboxPauseInPvP:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseInRaids.Note, "BOTTOMLEFT", -28, -ATS.frames.options.margin)
+    ATS.frames.options.checkboxPauseInPvP:SetChecked(ATS.frames.options.temporaryValues.pauseInPvP)
+    ATS.frames.options.checkboxPauseInPvP.Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
+    ATS.frames.options.checkboxPauseInPvP.Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxPauseInPvP, "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
+    ATS.frames.options.checkboxPauseInPvP.Note:SetText(ATS.ColoredTextFromHex('#7CB7CB', "Recommended in all cases"))
 
     -- Section title `FontString` for the available abilities frame
     ATS.frames.options.abilitySectionTitle = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormal")
-    ATS.frames.options.abilitySectionTitle:SetPoint("TOPLEFT", ATS.frames.options.checkboxMinimapPause, (ATS.frames.options.padding / 2), (-ATS.frames.options.margin * 1.5))
+    ATS.frames.options.abilitySectionTitle:SetPoint("TOPLEFT", ATS.frames.options.checkboxPauseInPvP, "BOTTOMLEFT", 0, -((ATS.frames.options.margin * 2) + ATS.frames.options.checkboxPauseInPvP.Note:GetHeight()))
     ATS.frames.options.abilitySectionTitle:SetText("Enabled Tracking Abilities")
 
     -- Create the sub-section frame to hold the list of enabled abilities
@@ -165,6 +196,9 @@ function ATS.CreateInterfaceOptions()
     if (#ATS_Character.abilities > 1) then
         -- Create a container to hold ability CheckButton frames
         ATS.frames.options.checkboxAbilities = {}
+
+        -- Calculate the new Height of the frame
+        local height = 0
         
         -- Loop through the available Tracking abilities and generate CheckButton elements for them
         for i, ability in ipairs(ATS_Character.abilities) do
@@ -172,12 +206,30 @@ function ATS.CreateInterfaceOptions()
             ATS.frames.options.checkboxAbilities[i] = CreateFrame("CheckButton", "ATS_Options_Ability_" .. i, ATS.frames.options.enabledAbilities, "InterfaceOptionsCheckButtonTemplate")
             ATS.frames.options.checkboxAbilities[i].Ability = ability
             ATS.frames.options.checkboxAbilities[i].Text:SetText(ability.name)
-            ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.padding, -(ATS.frames.options.margin * (i - 0.5)))
             ATS.frames.options.checkboxAbilities[i]:SetChecked(ATS.IsAbilityOptionChecked(ability))
+
+            -- Set the position based on the previous CheckButton, if there is one
+            if (i - 1 > 0) then
+                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.checkboxAbilities[i - 1], "BOTTOMLEFT", 0, -ATS.frames.options.margin)
+            else
+                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.padding, -ATS.frames.options.padding)
+            end
+
+            -- If the ability is on the global cooldown, add a warning to the user
+            if (ability.gcd) then
+                ATS.frames.options.checkboxAbilities[i].Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
+                ATS.frames.options.checkboxAbilities[i].Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxAbilities[i], "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
+                ATS.frames.options.checkboxAbilities[i].Note:SetText(ATS.ColoredTextFromHex('#FFFF00', "This tracker uses the global cooldown"))
+
+                height = height + ATS.frames.options.checkboxAbilities[i].Note:GetHeight() + (ATS.frames.options.margin / 2)
+            end
+
+            height = height + ATS.frames.options.checkboxAbilities[i]:GetHeight() + ATS.frames.options.margin
         end
 
         -- Resize the Enabled Abilities frame to adjust for number of abilities
-        ATS.frames.options.enabledAbilities:SetHeight((ATS.frames.options.checkboxAbilities[1]:GetHeight() + (ATS.frames.options.margin / 2)) * (#ATS.frames.options.checkboxAbilities + 0.25))
+        ATS.frames.options.enabledAbilities:SetHeight(height + ATS.frames.options.padding)
+
     -- Else display a message telling the user they have no abilities to enable
     else
         ATS.frames.options.noAbilityMessage = ATS.frames.options.enabledAbilities:CreateFontString("ARTWORK", nil, "GameFontHighlight")
@@ -196,20 +248,26 @@ function ATS.CreateInterfaceOptions()
         ATS.frames.options.checkboxResumeSound:SetChecked(ATS.frames.options.temporaryValues.resumeSound)
         ATS.frames.options.checkboxResumeSound:SetEnabled(ATS.frames.options.checkboxPauseSound:GetChecked())
         ATS.frames.options.checkboxMinimapPause:SetChecked(ATS.frames.options.temporaryValues.minimapPause)
+        ATS.frames.options.checkboxPauseInCombat:SetChecked(ATS.frames.options.temporaryValues.pauseInCombat)
+        ATS.frames.options.checkboxPauseInDungeons:SetChecked(ATS.frames.options.temporaryValues.pauseInDungeons)
+        ATS.frames.options.checkboxPauseInRaids:SetChecked(ATS.frames.options.temporaryValues.pauseInRaids)
+        ATS.frames.options.checkboxPauseInPvP:SetChecked(ATS.frames.options.temporaryValues.pauseInPvP)
 
-        -- Loop through the CheckButton elements
-        for i, checkboxAbility in ipairs(ATS.frames.options.checkboxAbilities) do
-            local ability = checkboxAbility.Ability
+        -- Loop through the CheckButton elements if there are any
+        if (#ATS_Character.abilities > 0) then
+            for i, checkboxAbility in ipairs(ATS.frames.options.checkboxAbilities) do
+                local ability = checkboxAbility.Ability
 
-            -- Make sure there is an ability added to this CheckButton element
-            if (ability) then
-                -- Loop through the actual enabled abilities 
-                checkboxAbility:SetChecked(false)
+                -- Make sure there is an ability added to this CheckButton element
+                if (ability) then
+                    -- Loop through the actual enabled abilities 
+                    checkboxAbility:SetChecked(false)
 
-                for j, enabledAbility in ipairs(ATS.frames.options.temporaryValues.enabledAbilities) do
-                    -- If the enabled ability matches that attached to this CheckButton element, mark it checked
-                    if (enabledAbility.name == ability.name) then
-                        checkboxAbility:SetChecked(true)
+                    for j, enabledAbility in ipairs(ATS.frames.options.temporaryValues.enabledAbilities) do
+                        -- If the enabled ability matches that attached to this CheckButton element, mark it checked
+                        if (enabledAbility.name == ability.name) then
+                            checkboxAbility:SetChecked(true)
+                        end
                     end
                 end
             end
@@ -233,6 +291,11 @@ function ATS.CreateInterfaceOptions()
         ATS_Character.options.pauseSound = ATS.frames.options.checkboxPauseSound:GetChecked()
         ATS_Character.options.resumeSound = ATS.frames.options.checkboxResumeSound:GetChecked()
         ATS_Character.options.minimapPause = ATS.frames.options.checkboxMinimapPause:GetChecked()
+        ATS_Character.options.pauseInCombat = ATS.frames.options.checkboxPauseInCombat:GetChecked()
+        ATS_Character.options.pauseInDungeons = ATS.frames.options.checkboxPauseInDungeons:GetChecked()
+        ATS_Character.options.pauseInRaids = ATS.frames.options.checkboxPauseInRaids:GetChecked()
+        ATS_Character.options.pauseInPvP = ATS.frames.options.checkboxPauseInPvP:GetChecked()
+        
 
         -- If there is more than 1 ability to enable
         if (#ATS_Character.abilities > 1) then

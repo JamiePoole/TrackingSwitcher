@@ -20,6 +20,10 @@ ATS.defaultOptions = {
     resumeSound = false,
     minimapPause = false,
     interval = 2,
+    pauseInCombat = false,
+    pauseInDungeons = false,
+    pauseInRaids = true,
+    pauseInPvP = true,
     enabledAbilities = {},
 }
 ATS.frames = {}
@@ -110,10 +114,14 @@ function ATS.UpdateAbilities()
         local name, texture, active, category, nested = GetTrackingInfo(i)
 
         if (category == "spell") then
+            -- Check if Spell uses the GCD
+            local cd, gcd = GetSpellBaseCooldown(name)
+
             local ability = {
                 id = i,
                 name = name,
-                texture = texture
+                texture = texture,
+                gcd = (gcd > 0)
             }
 
             table.insert(ATS_Character.abilities, ability)
@@ -183,11 +191,40 @@ function ATS.CanSwitchTo(ability)
     local targeting = SpellIsTargeting()
     if (targeting) then ATS.Debug("User currently targeting") end
 
-    -- Check if the user has set the Addon option to not switch while cursor is on the minimap
+    -- Can only switch if the cursor is not on the minimap (if option enabled)
     local hovering = ATS_Character.options.minimapPause and CURSOR_ON_MINIMAP
     if (hovering) then ATS.Debug("Cursor is over minimap") end
 
-    return (cooldownRemaining == 0) and (currentCastingSpell == nil) and (channelling == nil) and (cursorType == nil) and (not looting) and (not autorepeating) and (not targeting) and (not hovering)
+    -- Can only switch if the user is not in combat (if option enabled)
+    local inCombat = ATS_Character.options.pauseInCombat and InCombatLockdown()
+    if (inCombat) then ATS.Debug("User in combat") end
+
+    -- Can only switch if the user is not in a party dungeon (if option enabled)
+    local inInstance, instanceType = IsInInstance()
+    local inDungeon = ATS_Character.options.pauseInDungeons and (inInstance and instanceType == "party")
+    if (inDungeon) then ATS.Debug("User in dungeon instance") end
+
+    -- Can only switch if the user is not in a raid dungeon (if option enabled)
+    local inRaid = ATS_Character.options.pauseInRaids and (inInstance and instanceType == "raid")
+    if (inRaid) then ATS.Debug("User in raid instance") end
+
+    -- Can only switch if the user is not in Arena or Battleground (if option enabled)
+    local inPvP = ATS_Character.options.pauseInPvP and (inInstance and (instanceType == "pvp" or instanceType == "arena"))
+    if (inPvP) then ATS.Debug("User is in a Battleground or Arena") end
+
+    return
+        (cooldownRemaining == 0)
+        and (currentCastingSpell == nil)
+        and (channelling == nil)
+        and (cursorType == nil)
+        and (not looting)
+        and (not autorepeating)
+        and (not targeting)
+        and (not hovering)
+        and (not inCombat)
+        and (not inDungeon)
+        and (not inRaid)
+        and (not inPvP)
 end
 
 function ATS.GetValidatedTrackingId(ability)

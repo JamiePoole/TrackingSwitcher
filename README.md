@@ -1,6 +1,8 @@
 ## Track multiple resources with no effort.
 __Automatic Tracking Switcher__ effortlessly monitors multiple tracking targets with minimal effort by switching between different abilities on a timer. This allows you to optimise gathering abilities for farming, or for maintaining class-specific tracking spells while still keeping an eye out for resources.
 
+### Update 1.1.0
+The first feature update brings in the ability to additionally pause switching while in combat, a party dungeon, a raid instance or battleground/arena. This helps manage trackers that use global cooldowns and intefer with combat rotations, and also prevents these Trackers from appearing in damage meters and Warcraft Logs as unwarranted 'Activity'. So now your Raid Leader won't be asking why you cast 'Find Herbs' 34 times during KT!
 
 ### _Switcher Tracking Addon_ by lanscetre
 This addon was heavily inspired by __Switcher Tracking__ from __lansectre__. This project started as a fork of their addon as a learning experience and to improve upon it's functionality. However, during development, it was clear that the improved features required significant changes that warranted a new addon. Thanks for lansectre for the inspiration to create this project. All the code in this addon has been written from scratch, and nothing has been duplicated.
