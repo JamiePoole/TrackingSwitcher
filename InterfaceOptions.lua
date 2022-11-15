@@ -192,50 +192,7 @@ function ATS.CreateInterfaceOptions()
     ATS.frames.options.enabledAbilities:ClearAllPoints()
     ATS.frames.options.enabledAbilities:SetPoint("TOPLEFT", ATS.frames.options.abilitySectionTitle, "BOTTOMLEFT", 0, -5)
 
-    -- Only create the CheckButtons for enabled abilities if there are abilities to enable
-    if (#ATS_Character.abilities > 1) then
-        -- Create a container to hold ability CheckButton frames
-        ATS.frames.options.checkboxAbilities = {}
-
-        -- Calculate the new Height of the frame
-        local height = 0
-        
-        -- Loop through the available Tracking abilities and generate CheckButton elements for them
-        for i, ability in ipairs(ATS_Character.abilities) do
-            -- Create the CheckButton for the `Pause while cursor on minimap` option
-            ATS.frames.options.checkboxAbilities[i] = CreateFrame("CheckButton", "ATS_Options_Ability_" .. i, ATS.frames.options.enabledAbilities, "InterfaceOptionsCheckButtonTemplate")
-            ATS.frames.options.checkboxAbilities[i].Ability = ability
-            ATS.frames.options.checkboxAbilities[i].Text:SetText(ability.name)
-            ATS.frames.options.checkboxAbilities[i]:SetChecked(ATS.IsAbilityOptionChecked(ability))
-
-            -- Set the position based on the previous CheckButton, if there is one
-            if (i - 1 > 0) then
-                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.checkboxAbilities[i - 1], "BOTTOMLEFT", 0, -ATS.frames.options.margin)
-            else
-                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.padding, -ATS.frames.options.padding)
-            end
-
-            -- If the ability is on the global cooldown, add a warning to the user
-            if (ability.gcd) then
-                ATS.frames.options.checkboxAbilities[i].Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
-                ATS.frames.options.checkboxAbilities[i].Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxAbilities[i], "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
-                ATS.frames.options.checkboxAbilities[i].Note:SetText(ATS.ColoredTextFromHex('#FFFF00', "This tracker uses the global cooldown"))
-
-                height = height + ATS.frames.options.checkboxAbilities[i].Note:GetHeight() + (ATS.frames.options.margin / 2)
-            end
-
-            height = height + ATS.frames.options.checkboxAbilities[i]:GetHeight() + ATS.frames.options.margin
-        end
-
-        -- Resize the Enabled Abilities frame to adjust for number of abilities
-        ATS.frames.options.enabledAbilities:SetHeight(height + ATS.frames.options.padding)
-
-    -- Else display a message telling the user they have no abilities to enable
-    else
-        ATS.frames.options.noAbilityMessage = ATS.frames.options.enabledAbilities:CreateFontString("ARTWORK", nil, "GameFontHighlight")
-        ATS.frames.options.noAbilityMessage:SetPoint("LEFT", ATS.frames.options.padding, 0)
-        ATS.frames.options.noAbilityMessage:SetText("There are no tracking abilities to enable.")
-    end
+    ATS.BuildInterfaceOptionsAbilities()
 
     -- This is the built-in `refresh` callback included when assigning a panel to the Interface Options window
     -- Refresh occurs when user switches between Interface Options pages or re-opens window
@@ -295,10 +252,9 @@ function ATS.CreateInterfaceOptions()
         ATS_Character.options.pauseInDungeons = ATS.frames.options.checkboxPauseInDungeons:GetChecked()
         ATS_Character.options.pauseInRaids = ATS.frames.options.checkboxPauseInRaids:GetChecked()
         ATS_Character.options.pauseInPvP = ATS.frames.options.checkboxPauseInPvP:GetChecked()
-        
 
-        -- If there is more than 1 ability to enable
-        if (#ATS_Character.abilities > 1) then
+        -- If there is an ability to enable
+        if (#ATS_Character.abilities > 0) then
             -- Reset the enabled abilities and add new selections
             ATS_Character.options.enabledAbilities = {}
 
@@ -328,6 +284,96 @@ function ATS.CreateInterfaceOptions()
     ATS.frames.options.panel.cancel = function()
         ATS.frames.options.temporaryValues = CopyTable(ATS_Character.options)
     end
+end
+
+function ATS.BuildInterfaceOptionsAbilities()
+    -- Create or reuse a container that holds ability CheckButton frames
+    ATS.frames.options.checkboxAbilities = ATS.frames.options.checkboxAbilities or {}
+
+    -- Calculate the new Height of the frame
+    local height = 0
+
+    -- Loop through either the total number of abilities, OR the total number of CheckButtons already created (whichever is higher)
+    for i = 1, math.max(#ATS_Character.abilities, #ATS.frames.options.checkboxAbilities) do
+        -- Attempt to reference the ability
+        local ability = ATS_Character.abilities[i]
+
+        -- If there is an ability at this index (there might not be if there are more CheckButtons than current abilities) create or reuse CheckButton
+        -- Otherwise hide the CheckButton if it exists
+        if (ability ~= nil) then
+            -- If a CheckButton doesn't exist for this index, create one, otherwise repurpose existing CheckButton
+            if (ATS.frames.options.checkboxAbilities[i] == nil) then
+                ATS.frames.options.checkboxAbilities[i] = CreateFrame("CheckButton", "ATS_Options_Ability_" .. i, ATS.frames.options.enabledAbilities, "InterfaceOptionsCheckButtonTemplate")
+            -- Else run the 'Show' method on the existing frame (it may have been hidden previously)
+            else
+                ATS.frames.options.checkboxAbilities[i]:Show()
+            end
+            
+            -- Set CheckButton properties
+            ATS.frames.options.checkboxAbilities[i].Ability = ability
+            ATS.frames.options.checkboxAbilities[i].Text:SetText(ability.name)
+            ATS.frames.options.checkboxAbilities[i]:SetChecked(ATS.IsAbilityOptionChecked(ability))
+
+            -- Set the position based on the previous CheckButton, if there is one
+            if (i - 1 > 0) then
+                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.checkboxAbilities[i - 1], "BOTTOMLEFT", 0, -ATS.frames.options.margin)
+            else
+                ATS.frames.options.checkboxAbilities[i]:SetPoint("TOPLEFT", ATS.frames.options.padding, -ATS.frames.options.padding)
+            end
+
+            -- If the ability is on the global cooldown, add a warning to the user
+            if (ability.gcd) then
+                ATS.frames.options.checkboxAbilities[i].Note = ATS.frames.options.content:CreateFontString("ARTWORK", nil, "GameFontNormalSmall")
+                ATS.frames.options.checkboxAbilities[i].Note:SetPoint("BOTTOMLEFT", ATS.frames.options.checkboxAbilities[i], "BOTTOMLEFT", 28, -(ATS.frames.options.margin / 2))
+                ATS.frames.options.checkboxAbilities[i].Note:SetText(ATS.ColoredTextFromHex('#FFFF00', "This tracker uses the global cooldown"))
+
+                height = height + ATS.frames.options.checkboxAbilities[i].Note:GetHeight() + (ATS.frames.options.margin / 2)
+            -- Else if the ability doesn't use the global cooldown, hide the Note if it was previously assigned
+            else
+                if (ATS.frames.options.checkboxAbilities[i].Note ~= nil) then
+                    ATS.frames.options.checkboxAbilities[i].Note:Hide()
+                end
+            end
+
+            height = height + ATS.frames.options.checkboxAbilities[i]:GetHeight() + ATS.frames.options.margin
+        -- Otherwise hide the ChecKButton if it exists
+        else
+            if (ATS.frames.options.checkboxAbilities[i] ~= nil) then
+                ATS.frames.options.checkboxAbilities[i]:Hide()
+
+                -- Hide the 'Note' element if there was one for this CheckButton
+                if (ATS.frames.options.checkboxAbilities[i].Note ~= nil) then
+                    ATS.frames.options.checkboxAbilities[i].Note:Hide()
+                end
+            end
+        end
+    end
+
+    -- If there are no abilities, no CheckButtons should be created or all should be hidden
+    -- Display message and fix height
+    if (#ATS_Character.abilities == 0) then
+        -- Fix height
+        height = 100 - ATS.frames.options.padding
+
+        -- Only create label if necessary
+        if (ATS.frames.options.noAbilityMessage == nil) then 
+            ATS.frames.options.noAbilityMessage = ATS.frames.options.enabledAbilities:CreateFontString("ARTWORK", nil, "GameFontHighlight")
+        -- Else if it already exists make sure it's shown
+        else
+            ATS.frames.options.noAbilityMessage:Show()
+        end
+
+        ATS.frames.options.noAbilityMessage:SetPoint("LEFT", ATS.frames.options.padding, 0)
+        ATS.frames.options.noAbilityMessage:SetText("There are no tracking abilities to enable.")
+    -- Otherwise Hide the message if it was already shown
+    else
+        if (ATS.frames.options.noAbilityMessage ~= nil) then
+            ATS.frames.options.noAbilityMessage:Hide()
+        end
+    end
+
+    -- Resize the Enabled Abilities frame to adjust for number of abilities
+    ATS.frames.options.enabledAbilities:SetHeight(height + ATS.frames.options.padding)
 end
 
 function ATS.IsAbilityOptionChecked(optionAbility)

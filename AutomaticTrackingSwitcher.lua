@@ -36,6 +36,7 @@ local IS_LOOTING = false
 local IS_AUTOREPEATING = false
 local CURSOR_ON_MINIMAP = false
 local HAS_PLAYED_PAUSE_SOUND = false
+local LISTEN_FOR_SPELLS_CHANGED = false
 
 -------------------------------------------------------------------------------
 -- Key Bindings
@@ -110,11 +111,13 @@ function ATS.UpdateAbilities()
     -- Gets all Tracking abilities (not just spells, but townspeople and trainers etc too)
     local numTrackingAbilities = GetNumTrackingTypes()
 
+    -- Rebuild ability table with Tracker information
     for i = 1, numTrackingAbilities do
         local name, texture, active, category, nested = GetTrackingInfo(i)
 
+        -- If a 'spell' (as opposed to a Townsperson or Trainer etc)
         if (category == "spell") then
-            -- Check if Spell uses the GCD
+            -- Check if the Spell uses the GCD (gcd will be an integer greater than 0)
             local cd, gcd = GetSpellBaseCooldown(name)
 
             local ability = {
@@ -128,8 +131,60 @@ function ATS.UpdateAbilities()
         end
     end
 
+    -- Sync the enabled abilities to ensure any unlearned abilities still exist
+    ATS.RemovedUnlearnedEnabledAbilities()
+
+    -- Rebuild the 'Abilities' section of the Interface Options panel
+    ATS.BuildInterfaceOptionsAbilities()
+
     -- Print number of tracking abilities info message
     ATS.Print("Found " .. tostring(#ATS_Character.abilities) .. " tracking " .. format("\1244ability:abilities", #ATS_Character.abilities) .. ".")
+end
+
+function ATS.IsTrackingSpell(identifier)
+    -- WoW API `GetNumTrackingTypes`
+    -- Gets all Tracking abilities (not just spells, but townspeople and trainers etc too)
+    local numTrackingAbilities = GetNumTrackingTypes()
+    local isTracker = false
+
+    -- Attempt to find ability in Tracking list based on identifer
+    for i = 1, numTrackingAbilities do
+        local trackerName, _ = GetTrackingInfo(i)
+        local spellName, _ = GetSpellInfo(identifier)
+
+        if (spellName == trackerName) then isTracker = true end
+    end
+
+    -- ATS.Debug("Was Spell '" .. identifier .. "' a Tracker? " .. (isTracker and ATS.ColoredTextFromHex("#00EE00", "YES") or ATS.ColoredTextFromHex("#CC0000", "NO")))
+
+    return isTracker
+end
+
+function ATS.RemovedUnlearnedEnabledAbilities()
+    -- If there are any abilities at all
+    if (#ATS_Character.abilities > 0 and #ATS_Character.options.enabledAbilities > 0) then
+        -- Loop through enabled abilities
+        for i, enabledAbility in ipairs(ATS_Character.options.enabledAbilities) do
+            -- Check if enabled ability still exists/is learned
+            local exists = false
+
+            -- By looping through actual learned abilities and seeing if this enabled one exists
+            -- This requires `ATS.UpdateAbilities()` has ran first and updated the learned abilities list
+            for j, learnedAbility in ipairs(ATS_Character.abilities) do
+                if (learnedAbility.name == enabledAbility.name) then exists = true end
+            end
+
+            -- If the `exists` flag is still false, then this enabled ability was not found in the list of learned abilities
+            -- So delete it from the enabled abilities list
+            if (not exists) then
+                ATS.Print("Removing enabled ability '" .. ATS.ColoredTextFromHex("#CC0000", "[" .. enabledAbility.name .. "]") .. "' as it is no longer available.")
+
+                -- table.remove() is apparently not recommended for LUA for performance reasons
+                -- But as we are only removing 1 entry from a max of 10 or so possible loops, it will be fine
+                table.remove(ATS_Character.options.enabledAbilities, i)
+            end
+        end
+    end
 end
 
 function ATS.GetDefaultAbilities(force)
@@ -265,7 +320,7 @@ function ATS.SwitchAbility()
         -- Stop Ticker / Cleanup
         ATS.StopTicker(true)
 
-        ATS.Print("Less than 2 trackers are enabled so Automatic Tracking Switcher has been turned off. To start again, enable another Tracker in the Interface Options and type /" .. ATS.slashCommand .. " start")
+        ATS.Print("Less than 2 trackers are enabled so switching has been turned off. To start again, enable another Tracker in the Interface Options and type " .. ATS.ColoredTextFromHex("#FFCC00", "/" .. ATS.slashCommand .. " start"))
         return
     end
 
@@ -337,6 +392,9 @@ end
 
 -- Event PLAYER_LOGIN
 function ATS.OnPlayerLogin(event, ...)
+    -- Create Interface Options Widget UI
+    ATS.CreateInterfaceOptions()
+
     -- Collects and stores possible tracking Abilities into table
     ATS.UpdateAbilities()
 
@@ -349,10 +407,6 @@ function ATS.OnPlayerLogin(event, ...)
 
         ATS_Character.runOnce = true
     end
-
-    -- Create Interface Options Widget UI
-    -- This is called after first run actions in case any options are set during that step
-    ATS.CreateInterfaceOptions()
 
     -- If the `autostart` option is set, start the ticker
     if (ATS_Character.options.autoStart) then ATS.StartTicker() end
@@ -370,12 +424,64 @@ function ATS.OnAutoRepeatEvent(event, ...)
     IS_AUTOREPEATING = (event == "START_AUTOREPEAT_SPELL")
 end
 
+-- Event CHAT_MSG_SYSTEM
+function ATS.OnSystemChatEvent(event, ...)
+    local message = ...
+
+    -- Exit early if no message (unlikely to be a case)
+    if (message == "" or message == nil) then return end
+
+    -- Check that this message is for an `You have unlearned` 'error' event
+    -- This will be in the form of a global WoW Error code: `ERR_SPELL_UNLEARNED_S`
+    -- Capture whatever ability/spell it references
+    local unlearnedRegex = ERR_SPELL_UNLEARNED_S:gsub("%%s", "(.*)")
+    local unlearnedAbility = message:match(unlearnedRegex)
+
+    -- If the match correctly found an ability name
+    -- And it is a tracking ability
+    if (unlearnedAbility ~= nil and ATS.IsTrackingSpell(unlearnedAbility)) then
+        -- Unfortunately there is no event to listen for when an ability is unlearned.
+        -- The CHAT_MSG_SYSTEM event is fired BEFORE the ability is technically removed from the users spellbook.
+        -- So simply running `ATS.UpdateAbilities()` now would still return the previous list of abilities
+        -- including the one we think we just unlearned. So instead we now set this flag to true,
+        -- and the next `SPELLS_CHANGED` event that fires we can run `ATS.UpdateAbilities()`
+        LISTEN_FOR_SPELLS_CHANGED = true
+    end
+end
+
+-- Event LEARNED_SPELL_IN_TAB
+function ATS.OnLearnedSpellEvent(event, ...)
+    local spellId, _ = ...
+
+    -- Check that the learned spell was a Tracker
+    if (ATS.IsTrackingSpell(spellId)) then
+        ATS.UpdateAbilities()
+    end
+end
+
+-- Event SPELLS_CHANGED
+function ATS.OnSpellsChanged(event, ...)
+    -- Exit early if the flag `LISTEN_FOR_SPELLS_CHANGED` is not set to `true`
+    -- This is set to `true` in response to an ability being unlearned,
+    -- triggered by parsing the system chat messages
+    if (not LISTEN_FOR_SPELLS_CHANGED) then return end
+
+    -- Update the Tracking Abilities list and sync with enabled abilities
+    ATS.UpdateAbilities()
+
+    -- Turn off the flag so that this event is only fired once after the player unlearns an ability
+    LISTEN_FOR_SPELLS_CHANGED = false
+end
+
 -- Frame ONEVENT
 function ATS.OnEvent(self, event, ...)
     if (event == "ADDON_LOADED") then ATS.OnAddonLoaded(event, ...) end
     if (event == "PLAYER_LOGIN") then ATS.OnPlayerLogin(event, ...) end
     if (event == "LOOT_OPENED" or event == "LOOT_CLOSED") then ATS.OnLootEvent(event, ...) end
     if (event == "START_AUTOREPEAT_SPELL" or event == "STOP_AUTOREPEAT_SPELL") then ATS.OnAutoRepeatEvent(event, ...) end
+    if (event == "CHAT_MSG_SYSTEM") then ATS.OnSystemChatEvent(event, ...) end
+    if (event == "LEARNED_SPELL_IN_TAB") then ATS.OnLearnedSpellEvent(event, ...) end
+    if (event == "SPELLS_CHANGED") then ATS.OnSpellsChanged(event, ...) end
 end
 
 -- C_Timer.NewTicker ONTICKER (intervsal)
@@ -404,7 +510,7 @@ end
 function ATS.StartTicker(silent)
     -- Create Ticker if it doesn't already exist
     if (not ATS.TickerExists()) then
-        if (not silent) then ATS.Print("is starting, type /" .. ATS.slashCommand .. " again to cancel.") end
+        if (not silent) then ATS.Print("Starting, type " .. ATS.ColoredTextFromHex("#FFCC00", "/" .. ATS.slashCommand .. " stop") .. " to cancel.") end
 
         ATS.ticker = C_Timer.NewTicker(ATS_Character.options.interval, ATS.OnTicker)
     end
@@ -413,7 +519,7 @@ end
 function ATS.StopTicker(silent)
     -- Check if Ticker exists
     if (ATS.TickerExists()) then
-        if (not silent) then ATS.Print("has been stopped, type /" .. ATS.slashCommand .. " again to restart.") end
+        if (not silent) then ATS.Print("Stopped, type " .. ATS.ColoredTextFromHex("#FFCC00", "/" .. ATS.slashCommand .. " stop") .. " to restart.") end
 
         ATS.ticker:Cancel()
     end
@@ -483,4 +589,7 @@ ATS.frames.events:RegisterEvent("LOOT_OPENED")
 ATS.frames.events:RegisterEvent("LOOT_CLOSED")
 ATS.frames.events:RegisterEvent("START_AUTOREPEAT_SPELL")
 ATS.frames.events:RegisterEvent("STOP_AUTOREPEAT_SPELL")
+ATS.frames.events:RegisterEvent("CHAT_MSG_SYSTEM")
+ATS.frames.events:RegisterEvent("LEARNED_SPELL_IN_TAB")
+ATS.frames.events:RegisterEvent("SPELLS_CHANGED")
 ATS.frames.events:SetScript("OnEvent", ATS.OnEvent)
