@@ -41,13 +41,13 @@ There are still a some features yet to be implemented that are currently in-deve
 | Feature | Progress |
 |---------|:--------:|
 | Bug Fixes | In-Progress|
-| React to user learning/unlearning Tracking abilities | In-Progress |
+| Provide functional key-bindings for switching | In-Progress |
 | Localisation | Planned |
-| Provide functional key-bindings for switching | Planned |
 | Stop Switch on manual Tracker override | Planned |
 | Resume 'pause' based on time elapsed | Planned |
 | Minimap Tracking Icon overlay/GUI | Wish |
 | Allow players to select Trackers from default GUI dropdown | Wish |
+| React to user learning/unlearning Tracking abilities | Complete |
 | Dungeon/Raid/Combat toggle | Complete |
 | List commands and arguments for slash command (/ats) | Complete |
 
