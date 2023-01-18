@@ -37,6 +37,11 @@ This is the list of all the conditions the addon must pass in order to switch ab
 ### Still to come...
 There are still a some features yet to be implemented that are currently in-development, and I would love to hear your feedback or ideas on what to include in future releases.
 
+| Bugs |
+|:------:|
+| GCD abilities still attempt to switch during Log Out timer |
+| Ability switching may break costume items (unconfirmed) |
+| Switching closes enchanting soulbind warning window |
 
 | Feature | Progress |
 |---------|:--------:|
@@ -50,5 +55,6 @@ There are still a some features yet to be implemented that are currently in-deve
 | React to user learning/unlearning Tracking abilities | Complete |
 | Dungeon/Raid/Combat toggle | Complete |
 | List commands and arguments for slash command (/ats) | Complete |
+| Upgrade to 30401 | Complete |
 
 To make requests, report a bug, or just leave feedback, see this project's GitHub page at https://github.com/JamiePoole/TrackingSwitcher
