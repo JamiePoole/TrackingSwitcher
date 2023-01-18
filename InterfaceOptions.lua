@@ -187,12 +187,20 @@ function ATS.CreateInterfaceOptions()
         insets = { left = 4, right = 4, top = 4, bottom = 4 }})
     ATS.frames.options.enabledAbilities:SetBackdropBorderColor(1, 1, 1, 1.0);
     ATS.frames.options.enabledAbilities:SetBackdropColor(0, 0, 0, 0.0);
-    ATS.frames.options.enabledAbilities:SetWidth(ATS.frames.options.content:GetWidth() - (ATS.frames.options.padding * 2))
+    -- Width is full-width, minus the Scroll Bar (16 units), minus the desired padding on each side
+    ATS.frames.options.enabledAbilities:SetWidth(ATS.frames.options.content:GetWidth() - (ATS.frames.options.padding * 2) - 16)
     ATS.frames.options.enabledAbilities:SetHeight(100)
     ATS.frames.options.enabledAbilities:ClearAllPoints()
     ATS.frames.options.enabledAbilities:SetPoint("TOPLEFT", ATS.frames.options.abilitySectionTitle, "BOTTOMLEFT", 0, -5)
 
+    -- Now we build all the CheckButton items for each Tracking Ability inside this frame
     ATS.BuildInterfaceOptionsAbilities()
+
+    -- Create a footer framme to provide padding
+    ATS.frames.options.footerPadding = CreateFrame("Frame", "ATS_Options_FooterPadding", ATS.frames.options.content)
+    ATS.frames.options.footerPadding:SetWidth(ATS.frames.options.content:GetWidth() - 16)
+    ATS.frames.options.footerPadding:SetHeight(ATS.frames.options.padding)
+    ATS.frames.options.footerPadding:SetPoint("TOPLEFT", ATS.frames.options.enabledAbilities, "BOTTOMLEFT", 0, 0)
 
     -- This is the built-in `refresh` callback included when assigning a panel to the Interface Options window
     -- Refresh occurs when user switches between Interface Options pages or re-opens window

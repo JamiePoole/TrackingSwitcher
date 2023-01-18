@@ -109,11 +109,11 @@ function ATS.UpdateAbilities()
 
     -- WoW API `GetNumTrackingTypes`
     -- Gets all Tracking abilities (not just spells, but townspeople and trainers etc too)
-    local numTrackingAbilities = GetNumTrackingTypes()
+    local numTrackingAbilities = C_Minimap.GetNumTrackingTypes()
 
     -- Rebuild ability table with Tracker information
     for i = 1, numTrackingAbilities do
-        local name, texture, active, category, nested = GetTrackingInfo(i)
+        local name, texture, active, category, nested = C_Minimap.GetTrackingInfo(i)
 
         -- If a 'spell' (as opposed to a Townsperson or Trainer etc)
         if (category == "spell") then
@@ -142,14 +142,14 @@ function ATS.UpdateAbilities()
 end
 
 function ATS.IsTrackingSpell(identifier)
-    -- WoW API `GetNumTrackingTypes`
+    -- WoW API `C_Minimap.GetNumTrackingTypes`
     -- Gets all Tracking abilities (not just spells, but townspeople and trainers etc too)
-    local numTrackingAbilities = GetNumTrackingTypes()
+    local numTrackingAbilities = C_Minimap.GetNumTrackingTypes()
     local isTracker = false
 
     -- Attempt to find ability in Tracking list based on identifer
     for i = 1, numTrackingAbilities do
-        local trackerName, _ = GetTrackingInfo(i)
+        local trackerName, _ = C_Minimap.GetTrackingInfo(i)
         local spellName, _ = GetSpellInfo(identifier)
 
         if (spellName == trackerName) then isTracker = true end
@@ -283,17 +283,17 @@ function ATS.CanSwitchTo(ability)
 end
 
 function ATS.GetValidatedTrackingId(ability)
-    -- For some reason GetTrackingInfo()'s ID changes from the original GetNumTrackingTypes() order
+    -- For some reason C_Minimap.GetTrackingInfo()'s ID changes from the original GetNumTrackingTypes() order
     -- So we need to check that this ability we are about to activate matches the index it will use
-    local name = GetTrackingInfo(ability.id)
+    local name = C_Minimap.GetTrackingInfo(ability.id)
 
     -- If the Tracker this ID corresponds to matches the name of the ability we are expecting, exit early
     if (ability.name == name) then return ability.id end
 
     -- Otherwise, the name of the ability we think we're casting does NOT match this ID
     -- We need to search for it again and update this abilities ID property
-    for i = 1, GetNumTrackingTypes() do
-        local trackerName = GetTrackingInfo(i)
+    for i = 1, C_Minimap.GetNumTrackingTypes() do
+        local trackerName = C_Minimap.GetTrackingInfo(i)
 
         -- Find the current ability again
         if (trackerName == ability.name) then
@@ -308,19 +308,21 @@ end
 function ATS.SwitchAbility()
     -- Exit early and cancel Ticker if there are no enabled Abilities for this character (via Interface Options)
     if (not ATS_Character.options.enabledAbilities or #ATS_Character.options.enabledAbilities < 2) then
-        -- If there is one selected, first switch to that tracker before exiting early
+        -- If there is only one selected, first switch to that tracker before exiting early
         if (ATS_Character.options.enabledAbilities and ATS_Character.options.enabledAbilities[1] ~= nil) then
-            local ability = ATS_Character.options.enabledAbilities[1]
+
+        local ability = ATS_Character.options.enabledAbilities[1]
 
             ability.id = ATS.GetValidatedTrackingId(ability)
 
-            SetTracking(ability.id, true)
+            C_Minimap.SetTracking(ability.id, true)
         end
 
         -- Stop Ticker / Cleanup
         ATS.StopTicker(true)
 
         ATS.Print("Less than 2 trackers are enabled so switching has been turned off. To start again, enable another Tracker in the Interface Options and type " .. ATS.ColoredTextFromHex("#FFCC00", "/" .. ATS.slashCommand .. " start"))
+
         return
     end
 
@@ -333,13 +335,14 @@ function ATS.SwitchAbility()
         -- While highly unlikely, muting this may unintentionally mute some other events made at the exact moment of switching
         if (ATS_Character.options.mute) then MuteSoundFile(567407) end
 
+
         -- We need to validate the Tracking ID is still the same
         -- As there was a witnessed bug where the SetTracking ID had changed during runtime
         ability.id = ATS.GetValidatedTrackingId(ability)
 
         -- WoW API `SetTracking(trackingId, enable)`
-        -- Sets Tracker to Index (not spell ID, but index from `GetTrackingInfo()`)
-        SetTracking(ability.id, true)
+        -- Sets Tracker to Index (not spell ID, but index from `C_Minimap.GetTrackingInfo()`)
+        C_Minimap.SetTracking(ability.id, true)
 
         -- Unmute the sound effect if the option was enabled
         if (ATS_Character.options.mute) then UnmuteSoundFile(567407) end
@@ -400,7 +403,7 @@ function ATS.OnPlayerLogin(event, ...)
 
     -- Actions for first run
     if (not ATS_Character.runOnce) then
-        ATS.Debug("FIRST RUN")
+        ATS.Debug("Initial Setup")
 
         -- Try enable Mining or Herbalism as default
         ATS_Character.options.enabledAbilities = ATS.GetDefaultAbilities()

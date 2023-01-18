@@ -1,7 +1,7 @@
-## Interface: 30400
+## Interface: 30401
 
 ## Title: Automatic Tracking Switcher
-## Version: 1.0.0
+## Version: 1.1.1
 ## Author: Kawalsky
 ## Notes: Automatically switch tracking types for identifying multiple resources
 ## SavedVariables: ATS_Global
